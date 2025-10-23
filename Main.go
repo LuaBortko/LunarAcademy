@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/datastax/gocql-astra"
+	gocqlastra "github.com/datastax/gocql-astra"
 	"github.com/gocql/gocql"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
