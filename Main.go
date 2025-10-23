@@ -23,13 +23,14 @@ func testSupabase() {
 		log.Fatal("Erro ao carregar arquivo .env")
 	}
 
-	USER := os.Getenv("USER")
+	USUARIO := os.Getenv("USUARIO")
 	PASSWORD := os.Getenv("PASSWORD")
 	HOST := os.Getenv("HOST")
 	PORT := os.Getenv("PORT")
 	DBNAME := os.Getenv("DBNAME")
 
-	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", USER, PASSWORD, HOST, PORT, DBNAME)
+
+	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", USUARIO, PASSWORD, HOST, PORT, DBNAME)
 
 	conn, err := pgx.Connect(context.Background(), url)
 	if err != nil {
@@ -90,7 +91,7 @@ func testCassandra() {
 	}
 	defer session.Close()
 
-	fmt.Println("Conectado ao Cassandra")
+	fmt.Println("Conectado ao Cassandra com sucesso!")
 
 	// var version string
 	// iter := session.Query("SELECT release_version FROM system.local").Iter()
