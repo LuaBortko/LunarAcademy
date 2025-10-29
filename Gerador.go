@@ -56,7 +56,7 @@ func valorExiste(valor string, lista interface{}, campo string) bool {
 		}
 	}
 	return false
-}
+}//Retorna verdadeiro se o valor ja existir no slice (vulgo lista)
 
 func gerarUsuarios(n int) []Usuario{
 	usuarios := []Usuario{}
