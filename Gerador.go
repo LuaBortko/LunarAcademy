@@ -60,16 +60,26 @@ func valorExiste(valor string, lista interface{}, campo string) bool {
 
 func gerarUsuarios(n int) []Usuario{
 	usuarios := []Usuario{}
-	for i := 0; i < n; i++{
-		u := Usuario{cpf: gofakeit.Regex("[0-9]{11}"),
-		email: gofakeit.Email(),
-		senha: gofakeit.Password(true, true, true, true, false, 6)}
+	for len(usuarios) < n {
+		cpf := gofakeit.Regex("[0-9]{11}")
+		email := gofakeit.Email()
+		if valorExiste(cpf, usuarios, "cpf") || valorExiste(email, usuarios, "email"){
+			continue // já existe → gera outro
+		}
+		u := Usuario{cpf: cpf, email: email, senha: gofakeit.Password(true, true, true, false, false, 6)}
 		usuarios = append(usuarios, u)
 	}
 	return usuarios
 }
 
 func main(){
-	usuarios := gerarUsuarios(3)
+	usuarios := gerarUsuarios(10)
+	//usuarios := []Usuario{}
+	//usuarios = append(usuarios, Usuario{cpf: "123",email: "a@",senha: gofakeit.Password(true, true, true, true, false, 6)})
+	//usuarios = append(usuarios, Usuario{cpf: "12",email: "@",senha: gofakeit.Password(true, true, true, true, false, 6)})
+	//fmt.Println(valorExiste("123", usuarios, "cpf")) // 1
+	//fmt.Println(valorExiste("123@", usuarios, "email"))// 0 
+	//fmt.Println(valorExiste("1", usuarios, "cpf"))//0
+	//fmt.Println(valorExiste("a@", usuarios, "email")) // 1
 	fmt.Println(usuarios)
 }
