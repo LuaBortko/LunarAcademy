@@ -57,6 +57,7 @@ func valorExiste(valor string, lista interface{}, campo string) bool {
 	}
 	return false
 }//Retorna verdadeiro se o valor ja existir no slice (vulgo lista)
+//fmt.Println(valorExiste("123", usuarios, "cpf"))
 
 func gerarUsuarios(n int) []Usuario{
 	usuarios := []Usuario{}
@@ -72,14 +73,34 @@ func gerarUsuarios(n int) []Usuario{
 	return usuarios
 }
 
+func alunos(lista []string) []Alunos{
+	alunos := []Alunos{}
+	n_alunos := len(lista)/2
+	for len(alunos) < n_alunos{
+		nome := gofakeit.Name()
+		if valorExiste(nome, alunos, "nome"){
+			continue
+		}
+		
+		a:= Aluno{nome: nome, cpf: cpf}
+		alunos = append(alunos, a)
+	}
+}
+
+func professores(lista []string) []Professor{
+	professores := []Professor{}
+	n_professores := len(lista)
+	for len(professores) < n_professores{
+		nome := gofakeit.Name()
+		if valorExiste(nome, professores, "nome"){
+			continue
+		}
+		p:= Aluno{nome: nome, cpf: cpf}
+		professores = append(professores, p)
+	}
+}
+
 func main(){
-	usuarios := gerarUsuarios(10)
-	//usuarios := []Usuario{}
-	//usuarios = append(usuarios, Usuario{cpf: "123",email: "a@",senha: gofakeit.Password(true, true, true, true, false, 6)})
-	//usuarios = append(usuarios, Usuario{cpf: "12",email: "@",senha: gofakeit.Password(true, true, true, true, false, 6)})
-	//fmt.Println(valorExiste("123", usuarios, "cpf")) // 1
-	//fmt.Println(valorExiste("123@", usuarios, "email"))// 0 
-	//fmt.Println(valorExiste("1", usuarios, "cpf"))//0
-	//fmt.Println(valorExiste("a@", usuarios, "email")) // 1
-	fmt.Println(usuarios)
+	//usuarios := gerarUsuarios(10)
+	//fmt.Println(usuarios)
 }
