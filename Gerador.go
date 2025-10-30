@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/brianvoe/gofakeit/v6"
 	"reflect"
+	"math/rand"
 )
 
 type Usuario struct {
@@ -43,6 +44,10 @@ type Aluno_curso struct {
 	id_certificado string
 }
 
+func randInt(min, max int) int {
+    return min + rand.Intn(max-min)
+}
+
 func valorExiste(valor string, lista interface{}, campo string) bool {
 	v := reflect.ValueOf(lista) // retorna um objeto reflect, permitindo inspecionar o tipo, os campos e até o conteúdo de forma dinâmica
 
@@ -59,6 +64,15 @@ func valorExiste(valor string, lista interface{}, campo string) bool {
 }//Retorna verdadeiro se o valor ja existir no slice (vulgo lista)
 //fmt.Println(valorExiste("123", usuarios, "cpf"))
 
+func numExiste(num int, lista []int) bool{
+	for i := 0; i < len(lista); i++{
+		if num == lista[i]{
+			return true
+		}
+	}
+	return false
+}
+
 func gerarUsuarios(n int) []Usuario{
 	usuarios := []Usuario{}
 	for len(usuarios) < n {
@@ -73,21 +87,24 @@ func gerarUsuarios(n int) []Usuario{
 	return usuarios
 }
 
-func alunos(lista []string) []Alunos{
-	alunos := []Alunos{}
-	n_alunos := len(lista)/2
+func gerarAlunos(usuarios []Usuario, lista []int) []Aluno{
+	alunos := []Aluno{}
+	n_alunos := len(lista)
 	for len(alunos) < n_alunos{
 		nome := gofakeit.Name()
 		if valorExiste(nome, alunos, "nome"){
 			continue
 		}
-		
+		index := lista[0]
+		cpf := usuarios[index].cpf
+		lista = lista[1:]
 		a:= Aluno{nome: nome, cpf: cpf}
 		alunos = append(alunos, a)
 	}
+	return alunos
 }
 
-func professores(lista []string) []Professor{
+func gerarProfessores(usuarios []Usuario, lista []int) []Professor{
 	professores := []Professor{}
 	n_professores := len(lista)
 	for len(professores) < n_professores{
@@ -95,12 +112,30 @@ func professores(lista []string) []Professor{
 		if valorExiste(nome, professores, "nome"){
 			continue
 		}
-		p:= Aluno{nome: nome, cpf: cpf}
+		index := lista[0]
+		cpf := usuarios[index].cpf
+		lista = lista[1:]
+		p:= Professor{nome: nome, cpf: cpf}
 		professores = append(professores, p)
 	}
+	return professores
 }
 
 func main(){
-	//usuarios := gerarUsuarios(10)
+	usuarios := gerarUsuarios(10)
 	//fmt.Println(usuarios)
+	lista := []int{}
+	tam_usuario := len(usuarios);
+	for len(lista) < tam_usuario{
+		num := randInt(0,tam_usuario)
+		if numExiste(num, lista){
+			continue
+		}
+		lista = append(lista, num)
+	}
+	fmt.Println(lista)
+	alunos := gerarAlunos(usuarios,lista)
+	fmt.Println(lista)
+	fmt.Println("\n")
+	fmt.Println(alunos)
 }
