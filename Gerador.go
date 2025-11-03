@@ -122,8 +122,7 @@ func gerarProfessores(usuarios []Usuario, lista []int) []Professor{
 }
 
 func main(){
-	usuarios := gerarUsuarios(10)
-	//fmt.Println(usuarios)
+	usuarios := gerarUsuarios(4)
 	lista := []int{}
 	tam_usuario := len(usuarios);
 	for len(lista) < tam_usuario{
@@ -133,9 +132,10 @@ func main(){
 		}
 		lista = append(lista, num)
 	}
-	fmt.Println(lista)
-	alunos := gerarAlunos(usuarios,lista)
-	fmt.Println(lista)
-	fmt.Println("\n")
-	fmt.Println(alunos)
+	lista1 := lista[:(len(lista)/2) - 1]
+	lista2 := lista[(len(lista1)):]
+	professores := gerarProfessores(usuarios, lista1)
+	alunos := gerarAlunos(usuarios, lista2) 
+	
+
 }
