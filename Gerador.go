@@ -7,6 +7,7 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 	"reflect"
 	"math/rand"
+	"strconv"
 )
 
 type Usuario struct {
@@ -73,6 +74,15 @@ func numExiste(num int, lista []int) bool{
 	return false
 }
 
+func stringExiste(palavra string, lista []string) bool{
+	for i := 0; i < len(lista); i++{
+		if palavra == lista[i]{
+			return true
+		}
+	}
+	return false
+}
+
 func gerarUsuarios(n int) []Usuario{
 	usuarios := []Usuario{}
 	for len(usuarios) < n {
@@ -121,8 +131,61 @@ func gerarProfessores(usuarios []Usuario, lista []int) []Professor{
 	return professores
 }
 
+func gerarCursos(professores []Professor) []Curso{
+	cursos := []Curso{}
+	n_cursos := len(professores) + (len(professores)/2)
+	cpfs := []string{}
+	for i:= 0; i < len(professores); i++{
+		cpf := professores[i].cpf
+		cpfs = append(cpfs, cpf)
+	}
+	lista := make([]int, len(cpfs)) // lista que vai guardar a quant de cursos de cada professor
+	nomes := []string{}
+	adjectives := []string{"Introdução à ", " Avançado"}  
+	for i := 0; i < n_cursos; i++{
+		id := "CU-" + strconv.Itoa(i + 1) 
+
+		cpf := ""
+		index := 0
+		aux :=0
+		for aux == 0{
+			if len(cpfs) != 1{
+				index = randInt(0, len(cpfs))
+			}
+			lista[index] += 1;
+			if lista[index] <= 2{
+				cpf = cpfs[index]
+				aux = 1
+			}  
+		}
+		aux1 := 0
+		nome := ""
+		for aux1 == 0{
+			nome = gofakeit.ProgrammingLanguage()
+			if stringExiste(nome, nomes){
+				continue
+			}
+			nomes = append(nomes, nome)
+			aux1 = 1
+		}
+		n := randInt(0,2)
+		if n == 0{
+			nome = adjectives[0] + nome
+		}else{
+			nome = nome + adjectives[1]
+		} 
+
+		c := Curso{nome: nome, cpf_autor: cpf, id: id}
+		cursos = append(cursos, c)
+	}
+	return cursos
+
+}
+
 func main(){
-	usuarios := gerarUsuarios(4)
+	//minimo de usuarios é 4 e n sei por que 6 e 7 tbm não vai
+	// dps fazer um randon para gerar o numero de usuarios (8 - 20)
+	usuarios := gerarUsuarios(10)
 	lista := []int{}
 	tam_usuario := len(usuarios);
 	for len(lista) < tam_usuario{
@@ -136,6 +199,16 @@ func main(){
 	lista2 := lista[(len(lista1)):]
 	professores := gerarProfessores(usuarios, lista1)
 	alunos := gerarAlunos(usuarios, lista2) 
+
+	fmt.Println(professores)
+	fmt.Println(alunos)
+
+	cursos := gerarCursos(professores)
+	fmt.Println(cursos)
+
+
+	
+
 	
 
 }
