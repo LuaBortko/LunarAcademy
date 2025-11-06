@@ -3,6 +3,7 @@ module Projeto1
 go 1.25.2
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/datastax/gocql-astra v0.0.0-20250516142328-482592316433
 	github.com/gocql/gocql v1.7.0
 	github.com/jackc/pgx/v5 v5.5.5
@@ -12,7 +13,6 @@ require (
 
 require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
-	github.com/brianvoe/gofakeit/v6 v6.28.0 // indirect
 	github.com/datastax/astra-client-go/v2 v2.2.54 // indirect
 	github.com/datastax/cql-proxy v0.1.6 // indirect
 	github.com/datastax/go-cassandra-native-protocol v0.0.0-20220706104457-5e8aad05cf90 // indirect
