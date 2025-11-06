@@ -35,7 +35,7 @@ type Curso struct {
 type Certificado struct {
 	id string
 	horas string
-	} 
+} 
 
 type Aluno_curso struct {
 	cpf_aluno string
@@ -179,6 +179,10 @@ func gerarCursos(professores []Professor) []Curso{
 		cursos = append(cursos, c)
 	}
 	return cursos
+
+}
+
+func gerarCertificado{
 
 }
 
