@@ -191,6 +191,56 @@ func gerarCertificado() Certificado {
 	return Certificado{id: id, horas: horas}
 }
 
+func gerarAlunos_curso(alunos []Aluno, cursos []Curso) []Aluno_curso{
+	alunos_curso := []Aluno_curso{}
+	for i := 0; i < len(alunos); i++{
+		cpf := alunos[i].cpf
+		curso := ""
+		id_cer:= ""
+		n_cursos := randInt(1,len(cursos)+1)
+		cursados := []int{}
+		for len(cursados) <= n_cursos{
+			index := randInt(0, len(cursos))
+			if numExiste(index, cursados){
+				continue
+			}
+			cursados = append(cursados, index)
+			
+			curso = cursos[index].id
+
+			formou := randInt(0,2) // 0 -> nao terminou, 1 -> terminou o curso;
+			dia := gofakeit.Day()
+			mes := gofakeit.Month()
+			ano := randInt(2020, 2026)
+			data_in := strconv.Itoa(dia) + "/" + strconv.Itoa(mes) + "/" + strconv.Itoa(ano)
+			data_fim := "--/--/--"
+			if formou == 1{
+				aux_mes := 0
+				aux_ano := 0
+				dia_f := gofakeit.Day()
+				if dia_f <= dia{
+					aux_mes = 1
+				}
+				mes_f := gofakeit.Month() + aux_mes
+				if mes_f > 12{
+					mes_f = 1
+					aux_ano += 1
+				}
+				if mes_f < mes{
+					aux_ano += 1
+				}
+				ano_f := ano + aux_ano
+				data_fim = strconv.Itoa(dia_f) + "/" + strconv.Itoa(mes_f) + "/" + strconv.Itoa(ano_f)
+				id_cer = "a"
+			} 
+			a := Aluno_curso{cpf_aluno: cpf, id_curso: curso, data_in: data_in, data_fim: data_fim, id_certificado: id_cer}
+			alunos_curso = append(alunos_curso, a)
+
+		}
+	}
+	return alunos_curso
+}
+
 func main() {
 	//minimo de usuarios é 4 e n sei por que 6 e 7 tbm não vai
 	// dps fazer um randon para gerar o numero de usuarios (8 - 20)
@@ -215,8 +265,5 @@ func main() {
 	cursos := gerarCursos(professores)
 	fmt.Println(cursos)
 
-	for i := 0; i < 5; i++ {
-		fmt.Print(gerarCertificado())
-	}
-
+	
 }
