@@ -199,7 +199,7 @@ func gerarAlunos_curso(alunos []Aluno, cursos []Curso) []Aluno_curso{
 		id_cer:= ""
 		n_cursos := randInt(1,len(cursos)+1)
 		cursados := []int{}
-		for len(cursados) <= n_cursos{
+		for len(cursados) < n_cursos{
 			index := randInt(0, len(cursos))
 			if numExiste(index, cursados){
 				continue
@@ -215,6 +215,7 @@ func gerarAlunos_curso(alunos []Aluno, cursos []Curso) []Aluno_curso{
 			data_in := strconv.Itoa(dia) + "/" + strconv.Itoa(mes) + "/" + strconv.Itoa(ano)
 			data_fim := "--/--/--"
 			if formou == 1{
+				id_cer = "a"
 				aux_mes := 0
 				aux_ano := 0
 				dia_f := gofakeit.Day()
@@ -231,11 +232,10 @@ func gerarAlunos_curso(alunos []Aluno, cursos []Curso) []Aluno_curso{
 				}
 				ano_f := ano + aux_ano
 				data_fim = strconv.Itoa(dia_f) + "/" + strconv.Itoa(mes_f) + "/" + strconv.Itoa(ano_f)
-				id_cer = "a"
 			} 
 			a := Aluno_curso{cpf_aluno: cpf, id_curso: curso, data_in: data_in, data_fim: data_fim, id_certificado: id_cer}
 			alunos_curso = append(alunos_curso, a)
-
+			id_cer = ""
 		}
 	}
 	return alunos_curso
@@ -265,5 +265,9 @@ func main() {
 	cursos := gerarCursos(professores)
 	fmt.Println(cursos)
 
-	
+	alunos_curso := gerarAlunos_curso(alunos, cursos)
+	//for each
+	for _, value := range alunos_curso{
+		fmt.Println(value)
+	}
 }
