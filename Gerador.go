@@ -241,6 +241,8 @@ func gerarAlunos_curso(alunos []Aluno, cursos []Curso) []Aluno_curso{
 	return alunos_curso
 }
 
+
+
 func main() {
 	//minimo de usuarios é 4 e n sei por que 6 e 7 tbm não vai
 	// dps fazer um randon para gerar o numero de usuarios (8 - 20)
@@ -266,8 +268,15 @@ func main() {
 	fmt.Println(cursos)
 
 	alunos_curso := gerarAlunos_curso(alunos, cursos)
+	certificados := []Certificado{}
 	//for each
 	for _, value := range alunos_curso{
+		if value.id_certificado == "a"{
+			certificado := gerarCertificado()
+			value.id_certificado = certificado.id
+			certificados = append(certificados, certificado)
+		}
 		fmt.Println(value)
 	}
+
 }
