@@ -11,6 +11,8 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 )
 
+//=====================================Supabase=====================================
+
 type Usuario struct {
 	cpf   string
 	email string
@@ -191,48 +193,48 @@ func gerarCertificado() Certificado {
 	return Certificado{id: id, horas: horas}
 }
 
-func gerarAlunos_curso(alunos []Aluno, cursos []Curso) []Aluno_curso{
+func gerarAlunos_curso(alunos []Aluno, cursos []Curso) []Aluno_curso {
 	alunos_curso := []Aluno_curso{}
-	for i := 0; i < len(alunos); i++{
+	for i := 0; i < len(alunos); i++ {
 		cpf := alunos[i].cpf
 		curso := ""
-		id_cer:= ""
-		n_cursos := randInt(1,len(cursos)+1)
+		id_cer := ""
+		n_cursos := randInt(1, len(cursos)+1)
 		cursados := []int{}
-		for len(cursados) < n_cursos{
+		for len(cursados) < n_cursos {
 			index := randInt(0, len(cursos))
-			if numExiste(index, cursados){
+			if numExiste(index, cursados) {
 				continue
 			}
 			cursados = append(cursados, index)
-			
+
 			curso = cursos[index].id
 
-			formou := randInt(0,2) // 0 -> nao terminou, 1 -> terminou o curso;
+			formou := randInt(0, 2) // 0 -> nao terminou, 1 -> terminou o curso;
 			dia := gofakeit.Day()
 			mes := gofakeit.Month()
 			ano := randInt(2020, 2026)
 			data_in := strconv.Itoa(dia) + "/" + strconv.Itoa(mes) + "/" + strconv.Itoa(ano)
 			data_fim := "--/--/--"
-			if formou == 1{
+			if formou == 1 {
 				id_cer = "a"
 				aux_mes := 0
 				aux_ano := 0
 				dia_f := gofakeit.Day()
-				if dia_f <= dia{
+				if dia_f <= dia {
 					aux_mes = 1
 				}
 				mes_f := gofakeit.Month() + aux_mes
-				if mes_f > 12{
+				if mes_f > 12 {
 					mes_f = 1
 					aux_ano += 1
 				}
-				if mes_f < mes{
+				if mes_f < mes {
 					aux_ano += 1
 				}
 				ano_f := ano + aux_ano
 				data_fim = strconv.Itoa(dia_f) + "/" + strconv.Itoa(mes_f) + "/" + strconv.Itoa(ano_f)
-			} 
+			}
 			a := Aluno_curso{cpf_aluno: cpf, id_curso: curso, data_in: data_in, data_fim: data_fim, id_certificado: id_cer}
 			alunos_curso = append(alunos_curso, a)
 			id_cer = ""
@@ -241,7 +243,67 @@ func gerarAlunos_curso(alunos []Aluno, cursos []Curso) []Aluno_curso{
 	return alunos_curso
 }
 
+//=====================================MongoDB=====================================
 
+type Curso_Mongo struct {
+	nome        string
+	autor       string
+	descricao   string
+	requisitos  string
+	preco       string
+	dificuldade string
+	avaliacao   string
+}
+
+type Professor_Mongo struct {
+	nome             string
+	cpf              string
+	formacao         string
+	tempo_plataforma string
+	qtde_cursos      string
+}
+
+func gerarCurso_Mongo(cursos []Curso, professores []Professor) []Curso_Mongo {
+	cursos_mongo := []Curso_Mongo{}
+
+	for i := 0; i < len(cursos); i++ {
+		nome_autor := ""
+		nome_curso := cursos[i].nome
+		cpf_autor := cursos[i].cpf_autor
+		for j := 0; j < len(professores); j++ {
+			if cpf_autor == professores[j].cpf {
+				nome_autor = professores[j].nome
+			}
+		}
+		descricao := "Curso de " + nome_curso
+		possui := randInt(0, 2)
+		requisitos := ""
+		if possui == 0 {
+			requisitos = ""
+		} else {
+			requisitos = "Requisito minimo: O Basico"
+		}
+		preco := strconv.FormatFloat(gofakeit.Price(10.0, 100.0), 'f', -1, 64)
+		dificuldade := ""
+		nivel := randInt(1, 4)
+		if nivel == 1 {
+			dificuldade = "Iniciante"
+		} else if nivel == 2 {
+			dificuldade = "Intermediario"
+		} else {
+			dificuldade = "Avancado"
+		}
+		nota1 := randInt(0, 5)
+		nota2 := randInt(0, 10)
+		avaliacao := strconv.Itoa(nota1) + "." + strconv.Itoa(nota2)
+
+		c := Curso_Mongo{nome: nome_curso, autor: nome_autor, descricao: descricao, requisitos: requisitos, preco: preco, dificuldade: dificuldade, avaliacao: avaliacao}
+		cursos_mongo = append(cursos_mongo, c)
+	}
+	return cursos_mongo
+}
+
+//=====================================Cassandra=====================================
 
 func main() {
 	//minimo de usuarios é 4 e n sei por que 6 e 7 tbm não vai
@@ -270,13 +332,14 @@ func main() {
 	alunos_curso := gerarAlunos_curso(alunos, cursos)
 	certificados := []Certificado{}
 	//for each
-	for _, value := range alunos_curso{
-		if value.id_certificado == "a"{
+	for _, value := range alunos_curso {
+		if value.id_certificado == "a" {
 			certificado := gerarCertificado()
 			value.id_certificado = certificado.id
 			certificados = append(certificados, certificado)
 		}
 		fmt.Println(value)
 	}
-
+	cursos_mongo := gerarCurso_Mongo(cursos, professores)
+	fmt.Println(cursos_mongo)
 }
