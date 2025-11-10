@@ -29,7 +29,6 @@ func testSupabase() {
 	PORT := os.Getenv("PORT")
 	DBNAME := os.Getenv("DBNAME")
 
-
 	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", USUARIO, PASSWORD, HOST, PORT, DBNAME)
 
 	conn, err := pgx.Connect(context.Background(), url)
