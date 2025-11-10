@@ -255,7 +255,7 @@ type Curso_Mongo struct {
 	avaliacao   string
 }
 
-type Professor_Mongo struct {
+type Professor_Mongodb struct {
 	nome             string
 	cpf              string
 	formacao         string
@@ -303,6 +303,34 @@ func gerarCurso_Mongo(cursos []Curso, professores []Professor) []Curso_Mongo {
 	return cursos_mongo
 }
 
+func gerarProfessores_Mongodb(professores []Professor, cursos []Curso) []Professor_Mongodb {
+	professores_mongodb := []Professor_Mongodb{}
+	cursos_formacao := []string{"Ciência da Computação", "Ciência de dados", "Matemática", "Engenharia de Computação", "Sistemas de Informação", "Análise e Desenvolvimento de Sistemas"}
+	for i := 0; i < len(professores); i++ {
+		nome := professores[i].nome
+		cpf := professores[i].cpf
+		formado := randInt(0, 2)
+		formacao := ""
+		if formado == 1 {
+			curso_formacao := gofakeit.RandomString(cursos_formacao)
+			faculdade := gofakeit.School()
+			formacao = "Formado na " + faculdade + " no curso de " + curso_formacao
+		}
+		anos := randInt(0, 5)
+		meses := randInt(0, 13)
+		tempo_plataforma := strconv.Itoa(anos) + " anos e " + strconv.Itoa(meses) + " meses"
+		qtde_cursos := 0
+		for j := 0; j < len(cursos); j++ {
+			if cursos[j].cpf_autor == cpf {
+				qtde_cursos = qtde_cursos + 1
+			}
+		}
+		p := Professor_Mongodb{nome: nome, cpf: cpf, formacao: formacao, tempo_plataforma: tempo_plataforma, qtde_cursos: strconv.Itoa(qtde_cursos)}
+		professores_mongodb = append(professores_mongodb, p)
+	}
+	return professores_mongodb
+}
+
 //=====================================Cassandra=====================================
 
 func main() {
@@ -342,4 +370,10 @@ func main() {
 	}
 	cursos_mongo := gerarCurso_Mongo(cursos, professores)
 	fmt.Println(cursos_mongo)
+
+	professores_mongodb := gerarProfessores_Mongodb(professores, cursos)
+
+	for _, value := range professores_mongodb {
+		fmt.Println(value)
+	}
 }
