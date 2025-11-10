@@ -265,7 +265,6 @@ type Professor_Mongodb struct {
 
 func gerarCurso_Mongo(cursos []Curso, professores []Professor) []Curso_Mongo {
 	cursos_mongo := []Curso_Mongo{}
-
 	for i := 0; i < len(cursos); i++ {
 		nome_autor := ""
 		nome_curso := cursos[i].nome
@@ -333,6 +332,49 @@ func gerarProfessores_Mongodb(professores []Professor, cursos []Curso) []Profess
 
 //=====================================Cassandra=====================================
 
+type Historico struct {
+	nome        string
+	autor       string
+	avaliacao   string
+	data_inicio string
+	data_final  string
+}
+
+func gerarHistorico(cursos []Curso, professor []Professor, alunos_curso []Aluno_curso) []Historico {
+	historico := []Historico{}
+	for i := 0; i < len(alunos_curso); i++ {
+		nome := ""
+		cpf_autor := ""
+		id_curso := alunos_curso[i].id_curso
+		for j := 0; j < len(cursos); j++ {
+			if id_curso == cursos[j].id {
+				nome = cursos[j].nome
+				cpf_autor = cursos[j].cpf_autor
+			}
+		}
+		autor := ""
+		for k := 0; k < len(professor); k++ {
+			if cpf_autor == professor[k].cpf {
+				autor = professor[k].nome
+			}
+		}
+		nota1 := randInt(0, 5)
+		nota2 := randInt(0, 10)
+		avaliacao := strconv.Itoa(nota1) + "." + strconv.Itoa(nota2)
+		data_inicio := alunos_curso[i].data_in
+		data_final := alunos_curso[i].data_fim
+
+		h := Historico{nome: nome, autor: autor, avaliacao: avaliacao, data_inicio: data_inicio, data_final: data_final}
+		id_certificado := alunos_curso[i].id_certificado
+		if id_certificado != "" {
+			historico = append(historico, h)
+		}
+	}
+	return historico
+}
+
+//=====================================Main=====================================
+
 func main() {
 	//minimo de usuarios é 4 e n sei por que 6 e 7 tbm não vai
 	// dps fazer um randon para gerar o numero de usuarios (8 - 20)
@@ -369,11 +411,22 @@ func main() {
 		fmt.Println(value)
 	}
 	cursos_mongo := gerarCurso_Mongo(cursos, professores)
-	fmt.Println(cursos_mongo)
+
+	for _, value := range cursos_mongo {
+		fmt.Println(value)
+	}
 
 	professores_mongodb := gerarProfessores_Mongodb(professores, cursos)
 
 	for _, value := range professores_mongodb {
+		fmt.Println(value)
+	}
+
+	fmt.Println("==================Historico====================")
+
+	historico := gerarHistorico(cursos, professores, alunos_curso)
+
+	for _, value := range historico {
 		fmt.Println(value)
 	}
 }
