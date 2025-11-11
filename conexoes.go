@@ -101,7 +101,7 @@ func testCassandra() {
 	// 	log.Printf("Erro ao rodar query Cassandra: %v", err)
 	// }
 }
-
+/*
 func main() {
 	// Carrega as variáveis do .env
 	godotenv.Load()
@@ -114,3 +114,4 @@ func main() {
 
 	fmt.Println("Conexões encerradas")
 }
+*/

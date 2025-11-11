@@ -3,11 +3,10 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"math/rand"
 	"reflect"
 	"strconv"
-
 	"github.com/brianvoe/gofakeit/v6"
 )
 
@@ -375,6 +374,7 @@ func gerarHistorico(cursos []Curso, professor []Professor, alunos_curso []Aluno_
 
 //=====================================Main=====================================
 
+/*
 func main() {
 	//minimo de usuarios é 4 e n sei por que 6 e 7 tbm não vai
 	// dps fazer um randon para gerar o numero de usuarios (8 - 20)
@@ -430,3 +430,4 @@ func main() {
 		fmt.Println(value)
 	}
 }
+*/
