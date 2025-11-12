@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	//"time"
 
@@ -12,8 +13,9 @@ import (
 	//"github.com/gocql/gocql"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
-	//"go.mongodb.org/mongo-driver/mongo"
-	//"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func resetarSupabase(conn *pgx.Conn) {
@@ -30,7 +32,7 @@ func resetarSupabase(conn *pgx.Conn) {
 
 	_, err := conn.Exec(context.Background(), query)
 	if err != nil {
-		fmt.Println("erro ao dropar tabelas: %v", err)
+		fmt.Print("erro ao dropar tabelas: %v", err)
 	}
 }
 
@@ -85,100 +87,100 @@ func criarSupabase(conn *pgx.Conn) {
 
 	_, err := conn.Exec(context.Background(), query)
 	if err != nil {
-		fmt.Println("erro ao criar tabelas: %v", err)
+		fmt.Print("erro ao criar tabelas: %v", err)
 	}
 }
 
-func inserirUsuario(conn *pgx.Conn, usuarios []Usuario){
-	for i:= 0; i < len(usuarios); i++{
+func inserirUsuario(conn *pgx.Conn, usuarios []Usuario) {
+	for i := 0; i < len(usuarios); i++ {
 		u := usuarios[i]
 		query := `INSERT INTO usuario (cpf, email, senha) VALUES ($1, $2, $3)`
 		_, err := conn.Exec(context.Background(), query, u.cpf, u.email, u.senha)
 		if err != nil {
 			fmt.Print("erro ao inserir o usuario: ", u.cpf)
-		}else{
+		} else {
 			fmt.Print("Usuario ", u.cpf, " inserido com sucesso!\n")
 		}
 	}
 	fmt.Print("\n")
 }
 
-func inserirProfessor(conn *pgx.Conn, professores []Professor){
-	for i:= 0; i < len(professores); i++{
+func inserirProfessor(conn *pgx.Conn, professores []Professor) {
+	for i := 0; i < len(professores); i++ {
 		u := professores[i]
 		query := `INSERT INTO professor (nome, cpf) VALUES ($1, $2)`
 		_, err := conn.Exec(context.Background(), query, u.nome, u.cpf)
 		if err != nil {
 			fmt.Print("erro ao inserir o professor: ", u.nome, "\n")
-		}else{
+		} else {
 			fmt.Print("Professor ", u.nome, " inserido com sucesso!\n")
 		}
 	}
 	fmt.Print("\n")
 }
 
-func inserirAluno(conn *pgx.Conn, alunos []Aluno){
-	for i:= 0; i < len(alunos); i++{
+func inserirAluno(conn *pgx.Conn, alunos []Aluno) {
+	for i := 0; i < len(alunos); i++ {
 		u := alunos[i]
 		query := `INSERT INTO aluno (nome, cpf) VALUES ($1, $2)`
 		_, err := conn.Exec(context.Background(), query, u.nome, u.cpf)
 		if err != nil {
 			fmt.Print("erro ao inserir o aluno: ", u.nome, "\n")
-		}else{
+		} else {
 			fmt.Print("Aluno ", u.nome, " inserido com sucesso!\n")
 		}
 	}
 	fmt.Print("\n")
 }
 
-func inserirCurso(conn *pgx.Conn, cursos []Curso){
-	for i:= 0; i < len(cursos); i++{
+func inserirCurso(conn *pgx.Conn, cursos []Curso) {
+	for i := 0; i < len(cursos); i++ {
 		u := cursos[i]
 		query := `INSERT INTO curso (nome, cpf_autor, id) VALUES ($1, $2, $3)`
 		_, err := conn.Exec(context.Background(), query, u.nome, u.cpf_autor, u.id)
 		if err != nil {
 			fmt.Print("erro ao inserir o curso: ", u.nome, "\n")
-		}else{
+		} else {
 			fmt.Print("Curso ", u.nome, " inserido com sucesso!\n")
 		}
 	}
 	fmt.Print("\n")
 }
 
-func inserirCertificado(conn *pgx.Conn, certificados []Certificado){
-	for i:= 0; i < len(certificados); i++{
+func inserirCertificado(conn *pgx.Conn, certificados []Certificado) {
+	for i := 0; i < len(certificados); i++ {
 		u := certificados[i]
 		query := `INSERT INTO certificado (id, horas) VALUES ($1, $2)`
 		_, err := conn.Exec(context.Background(), query, u.id, u.horas)
 		if err != nil {
 			fmt.Print("erro ao inserir o certificado: ", u.id, "\n")
-		}else{
+		} else {
 			fmt.Print("Certificado ", u.id, " inserido com sucesso!\n")
 		}
 	}
 	fmt.Print("\n")
 }
 
-func inserirAluno_Curso(conn *pgx.Conn, alunos_curso []Aluno_curso){
-	for i:= 0; i < len(alunos_curso); i++{
+func inserirAluno_Curso(conn *pgx.Conn, alunos_curso []Aluno_curso) {
+	for i := 0; i < len(alunos_curso); i++ {
 		u := alunos_curso[i]
 
-		if u.id_certificado == ""{
+		if u.id_certificado == "" {
 			query := `INSERT INTO aluno_curso (id_curso, cpf_aluno, data_in, data_fim, id_certificado) VALUES ($1, $2, $3, $4, $5)`
 			_, err := conn.Exec(context.Background(), query, u.id_curso, u.cpf_aluno, u.data_in, u.data_fim, nil)
 			if err != nil {
 				fmt.Print(err)
 				fmt.Print("erro ao inserir o Aluno_curso: ", u.cpf_aluno, " em ", u.id_curso, "\n")
-			}else{
+			} else {
 				fmt.Print("Aluno_curso ", u.cpf_aluno, " em ", u.id_curso, " inserido com sucesso!\n")
 			}
-		}else{
+		} else {
 			query := `INSERT INTO aluno_curso (id_curso, cpf_aluno, data_in, data_fim, id_certificado) VALUES ($1, $2, $3, $4, $5)`
 			_, err := conn.Exec(context.Background(), query, u.id_curso, u.cpf_aluno, u.data_in, u.data_fim, u.id_certificado)
 			if err != nil {
 				fmt.Print(err)
 				fmt.Print("erro ao inserir o Aluno_curso: ", u.cpf_aluno, " em ", u.id_curso, "\n")
-			}else{
+			} else {
 				fmt.Print("Aluno_curso ", u.cpf_aluno, " em ", u.id_curso, " inserido com sucesso!\n")
 			}
 		}
@@ -186,7 +188,57 @@ func inserirAluno_Curso(conn *pgx.Conn, alunos_curso []Aluno_curso){
 	fmt.Print("\n")
 }
 
+// MongoDB
 
+func resetarMongoDB(ctx context.Context, client *mongo.Client, dbName string) {
+	err := client.Database(dbName).Drop(ctx)
+	if err != nil {
+		fmt.Print("Erro ao dropar MongoDB")
+		return
+	}
+}
+
+func inserirCurso_Mongo(ctx context.Context, client *mongo.Client, dbName string, cursos []Curso_Mongo) {
+	coll := client.Database(dbName).Collection("cursos")
+
+	var docs []interface{}
+	for _, c := range cursos {
+		docs = append(docs, bson.M{
+			"nome":        c.nome,
+			"autor":       c.autor,
+			"descricao":   c.descricao,
+			"requisitos":  c.requisitos,
+			"preco":       c.preco,
+			"dificuldade": c.dificuldade,
+			"avaliacao":   c.avaliacao,
+		})
+	}
+	_, err := coll.InsertMany(ctx, docs)
+	if err != nil {
+		fmt.Println("Erro ao inserir cursos:, err")
+	} else {
+		fmt.Printf("\n%d cursos inseridos com sucesso\n", len(cursos))
+	}
+}
+
+func inserirProfessor_MongoDB(ctx context.Context, client *mongo.Client, dbName string, professores []Professor_Mongodb) {
+	coll := client.Database(dbName).Collection("professores")
+
+	var docs []interface{}
+	for _, p := range professores {
+		docs = append(docs, bson.M{
+			"nome":             p.nome,
+			"cpf":              p.cpf,
+			"formacao":         p.formacao,
+			"tempo_plataforma": p.tempo_plataforma,
+			"qtde_cursos":      p.qtde_cursos,
+		})
+	}
+	_, err := coll.InsertMany(ctx, docs)
+	if err != nil {
+		fmt.Println("\nErro ao inserir professores:", err)
+	}
+}
 
 func main() {
 	//Conexao com o Supabase
@@ -242,15 +294,42 @@ func main() {
 	//cursos_mongo := gerarCurso_Mongo(cursos, professores)
 	//professores_mongodb := gerarProfessores_Mongodb(professores, cursos)
 	//historico := gerarHistorico(cursos, professores, alunos_curso)
-	
+
 	//inserindo no bamco
-	inserirUsuario(conn,usuarios)
+	inserirUsuario(conn, usuarios)
 	inserirProfessor(conn, professores)
 	inserirAluno(conn, alunos)
 	inserirCurso(conn, cursos)
 	inserirCertificado(conn, certificados)
 	inserirAluno_Curso(conn, alunos_curso)
 
+	defer conn.Close(context.Background())
+
+	// // MongoDB
+
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		log.Println("MONGO_URI não configurada, pulando conexão MongoDB")
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	if err != nil {
+		log.Fatalf("Falha ao conectar ao MongoDB: %v", err)
+	}
+	defer client.Disconnect(ctx)
+
+	dbName := "CursosProfessores"
+
+	resetarMongoDB(ctx, client, dbName)
+
+	cursos_mongo := gerarCurso_Mongo(cursos, professores)
+	professores_mongodb := gerarProfessores_Mongodb(professores, cursos)
+	inserirCurso_Mongo(ctx, client, dbName, cursos_mongo)
+	inserirProfessor_MongoDB(ctx, client, dbName, professores_mongodb)
+	fmt.Print("Dados do MongoDB inseridos")
 
 	defer conn.Close(context.Background())
 }
