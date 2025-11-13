@@ -188,6 +188,57 @@ func inserirAluno_Curso(conn *pgx.Conn, alunos_curso []Aluno_curso) {
 	fmt.Print("\n")
 }
 
+func lerUsuarios(conn *pgx.Conn) []Usuario {
+	rows, err := conn.Query(context.Background(), "SELECT cpf, email, senha FROM usuario")
+	if err != nil {
+		fmt.Errorf("erro ao executar SELECT: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var usuarios []Usuario
+
+	for rows.Next() {
+		var u Usuario
+		err := rows.Scan(&u.cpf, &u.email, &u.senha)
+		if err != nil {
+			fmt.Errorf("erro ao ler linha: %v", err)
+			return nil
+		}
+		usuarios = append(usuarios, u)
+	}
+	return usuarios
+}
+
+func lerProfessores(conn *pgx.Conn) []Professor {
+	rows, err := conn.Query(context.Background(), "SELECT nome, cpf FROM professor")
+	if err != nil {
+		fmt.Errorf("erro ao executar SELECT: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var professores []Professor
+
+	for rows.Next() {
+		var u Professor
+		err := rows.Scan(&u.nome, &u.cpf)
+		if err != nil {
+			fmt.Errorf("erro ao ler linha: %v", err)
+			return nil
+		}
+		professores = append(professores, u)
+	}
+	return professores
+}
+
+func resetarBancos(conn *pgx.Conn, session *gocql.Session, ctx context.Context, client *mongo.Client, dbName string) {
+	resetarSupabase(conn)
+	criarSupabase(conn)
+	resetarCassandra(session)
+	resetarMongoDB(ctx, client, dbName)
+}
+
 // MongoDB
 
 func resetarMongoDB(ctx context.Context, client *mongo.Client, dbName string) {
@@ -292,52 +343,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Falha ao conectar ao Supabase: %v", err)
 	}
-	fmt.Println("Conectado ao SupaBase com sucesso!")
-
-	//Criando as tabelas do supa
-	resetarSupabase(conn)
-	criarSupabase(conn)
-	//gerando as listas
-	usuarios := gerarUsuarios(10)
-	//fmt.Println(usuarios)
-	lista := []int{}
-	tam_usuario := len(usuarios)
-	for len(lista) < tam_usuario {
-		num := randInt(0, tam_usuario)
-		if numExiste(num, lista) {
-			continue
-		}
-		lista = append(lista, num)
-	}
-	lista1 := lista[:(len(lista)/2)-1]
-	lista2 := lista[(len(lista1)):]
-	professores := gerarProfessores(usuarios, lista1)
-	alunos := gerarAlunos(usuarios, lista2)
-	cursos := gerarCursos(professores)
-	alunos_curso := gerarAlunos_curso(alunos, cursos)
-	certificados := []Certificado{}
-	for i := range alunos_curso {
-		if alunos_curso[i].id_certificado == "a" {
-			certificado := gerarCertificado()
-			alunos_curso[i].id_certificado = certificado.id
-			certificados = append(certificados, certificado)
-		}
-	}
-	fmt.Println(certificados)
-	fmt.Print(alunos_curso)
-	//cursos_mongo := gerarCurso_Mongo(cursos, professores)
-	//professores_mongodb := gerarProfessores_Mongodb(professores, cursos)
-	//historico := gerarHistorico(cursos, professores, alunos_curso)
-
-	//inserindo no bamco
-	inserirUsuario(conn, usuarios)
-	inserirProfessor(conn, professores)
-	inserirAluno(conn, alunos)
-	inserirCurso(conn, cursos)
-	inserirCertificado(conn, certificados)
-	inserirAluno_Curso(conn, alunos_curso)
-
-	defer conn.Close(context.Background())
+	//fmt.Println("Conectado ao SupaBase com sucesso!")
 
 	// // MongoDB
 
@@ -356,16 +362,6 @@ func main() {
 	defer client.Disconnect(ctx)
 
 	dbName := "CursosProfessores"
-
-	resetarMongoDB(ctx, client, dbName)
-
-	cursos_mongo := gerarCurso_Mongo(cursos, professores)
-	professores_mongodb := gerarProfessores_Mongodb(professores, cursos)
-	inserirCurso_Mongo(ctx, client, dbName, cursos_mongo)
-	inserirProfessor_MongoDB(ctx, client, dbName, professores_mongodb)
-	fmt.Print("\nDados do MongoDB inseridos\n")
-
-	defer conn.Close(context.Background())
 
 	// Cassandra
 
@@ -390,10 +386,78 @@ func main() {
 	if err != nil {
 		log.Fatalf("Erro ao conectar ao Cassandra: %v", err)
 	}
+
+	var i int
+	fmt.Print("Resetar bancos?(1-sim,2-não)")
+	fmt.Scan(&i)
+	if i == 1 {
+		resetarBancos(conn, session, ctx, client, dbName)
+	}
+
+	var j int
+	fmt.Print("\nGerar mais dados?(1-sim,2-não)")
+	fmt.Scan(&j)
+	if j == 1 {
+		//gerando as listas
+		usuarios := gerarUsuarios(10)
+		//fmt.Println(usuarios)
+		lista := []int{}
+		tam_usuario := len(usuarios)
+		for len(lista) < tam_usuario {
+			num := randInt(0, tam_usuario)
+			if numExiste(num, lista) {
+				continue
+			}
+			lista = append(lista, num)
+		}
+		lista1 := lista[:(len(lista)/2)-1]
+		lista2 := lista[(len(lista1)):]
+		professores := gerarProfessores(usuarios, lista1)
+		alunos := gerarAlunos(usuarios, lista2)
+		cursos := gerarCursos(professores)
+		alunos_curso := gerarAlunos_curso(alunos, cursos)
+		certificados := []Certificado{}
+		for i := range alunos_curso {
+			if alunos_curso[i].id_certificado == "a" {
+				certificado := gerarCertificado()
+				alunos_curso[i].id_certificado = certificado.id
+				certificados = append(certificados, certificado)
+			}
+		}
+		fmt.Println(certificados)
+		fmt.Print(alunos_curso)
+
+		//inserindo no bamco
+		inserirUsuario(conn, usuarios)
+		inserirProfessor(conn, professores)
+		inserirAluno(conn, alunos)
+		inserirCurso(conn, cursos)
+		inserirCertificado(conn, certificados)
+		inserirAluno_Curso(conn, alunos_curso)
+
+		//resetarMongoDB(ctx, client, dbName)
+
+		cursos_mongo := gerarCurso_Mongo(cursos, professores)
+		professores_mongodb := gerarProfessores_Mongodb(professores, cursos)
+		inserirCurso_Mongo(ctx, client, dbName, cursos_mongo)
+		inserirProfessor_MongoDB(ctx, client, dbName, professores_mongodb)
+		fmt.Print("\nDados do MongoDB inseridos\n")
+
+		//resetarCassandra(session)
+		historico := gerarHistorico(cursos, professores, alunos_curso)
+		inserirHistorico_Cassandra(session, historico)
+		fmt.Print("\nDados do Cassandra inseridos")
+	}
+
+	usuarios_banco := lerUsuarios(conn)
+	fmt.Println("\n")
+	fmt.Println(usuarios_banco)
+
+	defer conn.Close(context.Background())
 	defer session.Close()
 
-	resetarCassandra(session)
-	historico := gerarHistorico(cursos, professores, alunos_curso)
-	inserirHistorico_Cassandra(session, historico)
-	fmt.Print("\nDados do Cassandra inseridos")
+	// Queries
+	//Mostrar nome e senha de todos os alunos (supa)
+	//Mostrar todas as notas acima de 3 de um certo aluno (cassandra)
+	//Mostrar o nome e se o professor tem alguma formação
 }
