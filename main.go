@@ -383,9 +383,7 @@ func inserirCurso_Mongo(ctx context.Context, client *mongo.Client, dbName string
 	_, err := coll.InsertMany(ctx, docs)
 	if err != nil {
 		fmt.Println("Erro ao inserir cursos:", err)
-	} else {
-		fmt.Printf("\n%d cursos inseridos com sucesso\n", len(cursos))
-	}
+	} 
 }
 
 func inserirProfessor_MongoDB(ctx context.Context, client *mongo.Client, dbName string, professores []Professor_Mongodb) {
@@ -484,8 +482,8 @@ func resetarCassandra(session *gocql.Session) {
 	err := session.Query(`
 		CREATE TABLE IF NOT EXISTS historico (
 		id UUID PRIMARY KEY,
-		nome text,
-		autor text,
+		cpf_aluno text,
+		id_curso text,
 		avaliacao text,
 		data_inicio text,
 		data_final text)
@@ -500,9 +498,9 @@ func inserirHistorico_Cassandra(session *gocql.Session, historico []Historico) {
 	for _, h := range historico {
 		id := gocql.TimeUUID()
 		err := session.Query(`
-		INSERT INTO historico (id, nome, autor, avaliacao, data_inicio, data_final)
+		INSERT INTO historico (id, cpf_aluno, id_curso, avaliacao, data_inicio, data_final)
 		VALUES (?, ?, ? , ?, ?, ?)`,
-			id, h.nome, h.autor, h.avaliacao, h.data_inicio, h.data_final,
+			id, h.cpf_aluno, h.id_curso, h.avaliacao, h.data_inicio, h.data_final,
 		).Exec()
 		if err != nil {
 			log.Printf("Erro ao inserir historico: %v", err)
@@ -511,12 +509,12 @@ func inserirHistorico_Cassandra(session *gocql.Session, historico []Historico) {
 }
 
 func lerHistorico_Cassandra(session *gocql.Session) []Historico {
-	iter := session.Query(`SELECT nome, autor, avaliacao, data_inicio, data_final FROM historico`).Iter()
+	iter := session.Query(`SELECT cpf_aluno, id_curso, avaliacao, data_inicio, data_final FROM historico`).Iter()
 
 	var historicos []Historico
 	var h Historico
 
-	for iter.Scan(&h.nome, &h.autor, &h.avaliacao, &h.data_inicio, &h.data_final) {
+	for iter.Scan(&h.cpf_aluno, &h.id_curso, &h.avaliacao, &h.data_inicio, &h.data_final) {
 		historicos = append(historicos, h)
 	}
 
@@ -589,18 +587,16 @@ func main() {
 	}
 
 	var i int
-	fmt.Print("Resetar bancos?(1-sim,2-não)")
+	fmt.Print("Resetar bancos?(1-sim,2-não) ")
 	fmt.Scan(&i)
 	if i == 1 {
 		resetarBancos(conn, session, ctx, client, dbName)
 	}
 
-	var j int
-	fmt.Print("\nGerar mais dados?(1-sim,2-não)")
-	fmt.Scan(&j)
-	if j == 1 {
+	if i == 1 {
 		//gerando as listas
-		usuarios := gerarUsuarios(10)
+		aleatorio := randInt(10,16)
+		usuarios := gerarUsuarios(aleatorio)
 		//fmt.Println(usuarios)
 		lista := []int{}
 		tam_usuario := len(usuarios)
@@ -645,20 +641,88 @@ func main() {
 		fmt.Print("\nDados do MongoDB inseridos\n")
 
 		//resetarCassandra(session)
-		historico := gerarHistorico(cursos, professores, alunos_curso)
+		historico := gerarHistorico(alunos_curso)
 		inserirHistorico_Cassandra(session, historico)
 		fmt.Print("\nDados do Cassandra inseridos")
 	}
 
-	usuarios_banco := lerProfessores_MongoDB(ctx, client, dbName)
+	usuarios_lidos := lerUsuarios(conn)
+	professores_lidos := lerProfessores(conn)
+	alunos_lidos := lerAlunos(conn)
+	cursos_lidos := lerCursos(conn)
+	certificados_lidos := lerCertificados(conn)
+	alunos_curso_lidos := lerAlunos_Curso(conn)
+
+	professores_mongodb_lidos := lerProfessores_MongoDB(ctx, client, dbName)
+	cursos_mongo_lidos := lerCursos_Mongo(ctx, client, dbName)
+	
+	historicos_lidos := lerHistorico_Cassandra(session)
+
+	fmt.Println("----------------------------------------")
+	fmt.Println("Tabelas lidas do Supabase")
+	fmt.Println("----------------------------------------")
+	fmt.Println("Usuários")
+	for i := 0; i < len(usuarios_lidos); i++{
+		u := usuarios_lidos[i]
+		fmt.Println(u)
+	}
 	fmt.Println("\n")
-	fmt.Println(usuarios_banco)
+	fmt.Println("Professores")
+	for i := 0; i < len(professores_lidos); i++{
+		u := professores_lidos[i]
+		fmt.Println(u)
+	}
+	fmt.Println("\n")
+	fmt.Println("Alunos")
+	for i := 0; i < len(alunos_lidos); i++{
+		u := alunos_lidos[i]
+		fmt.Println(u)
+	}
+	fmt.Println("\n")
+	fmt.Println("Cursos")
+	for i := 0; i < len(cursos_lidos); i++{
+		u := cursos_lidos[i]
+		fmt.Println(u)
+	}
+	fmt.Println("\n")
+	fmt.Println("Certificados")
+	for i := 0; i < len(certificados_lidos); i++{
+		u := certificados_lidos[i]
+		fmt.Println(u)
+	}
+	fmt.Println("\n")
+	fmt.Println("Alunos-Cursos")
+	for i := 0; i < len(alunos_curso_lidos); i++{
+		u := alunos_curso_lidos[i]
+		fmt.Println(u)
+	}
+	fmt.Println("----------------------------------------")
+	fmt.Println("Tabelas lidas do MongoDB")
+	fmt.Println("----------------------------------------")
+	fmt.Println("\n")
+	fmt.Println("Cursos")
+	for i := 0; i < len(cursos_mongo_lidos); i++{
+		u := cursos_mongo_lidos[i]
+		fmt.Println(u)
+	}
+	fmt.Println("\n")
+	fmt.Println("Professores")
+	for i := 0; i < len(professores_mongodb_lidos); i++{
+		u := professores_mongodb_lidos[i]
+		fmt.Println(u)
+	}
+	fmt.Println("\n----------------------------------------")
+	fmt.Println("Tabelas lidas do Cassandra")
+	fmt.Println("----------------------------------------")
+	fmt.Println("\n")
+	fmt.Println("Históricos")
+	for i := 0; i < len(historicos_lidos); i++{
+		u := historicos_lidos[i]
+		fmt.Println(u)
+	}
 
 	defer conn.Close(context.Background())
 	defer session.Close()
 
-	// Queries
-	//Mostrar nome e senha de todos os alunos (supa)
-	//Mostrar todas as notas acima de 3 de um certo aluno (cassandra)
-	//Mostrar o nome e se o professor tem alguma formação
+	
 }

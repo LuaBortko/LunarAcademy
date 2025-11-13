@@ -332,38 +332,26 @@ func gerarProfessores_Mongodb(professores []Professor, cursos []Curso) []Profess
 //=====================================Cassandra=====================================
 
 type Historico struct {
-	nome        string
-	autor       string
+	cpf_aluno   string
+	id_curso    string
 	avaliacao   string
 	data_inicio string
 	data_final  string
 }
 
-func gerarHistorico(cursos []Curso, professor []Professor, alunos_curso []Aluno_curso) []Historico {
+func gerarHistorico(alunos_curso []Aluno_curso) []Historico {
 	historico := []Historico{}
 	for i := 0; i < len(alunos_curso); i++ {
-		nome := ""
-		cpf_autor := ""
+		cpf := alunos_curso[i].cpf_aluno
 		id_curso := alunos_curso[i].id_curso
-		for j := 0; j < len(cursos); j++ {
-			if id_curso == cursos[j].id {
-				nome = cursos[j].nome
-				cpf_autor = cursos[j].cpf_autor
-			}
-		}
-		autor := ""
-		for k := 0; k < len(professor); k++ {
-			if cpf_autor == professor[k].cpf {
-				autor = professor[k].nome
-			}
-		}
+		
 		nota1 := randInt(0, 5)
 		nota2 := randInt(0, 10)
 		avaliacao := strconv.Itoa(nota1) + "." + strconv.Itoa(nota2)
 		data_inicio := alunos_curso[i].data_in
 		data_final := alunos_curso[i].data_fim
 
-		h := Historico{nome: nome, autor: autor, avaliacao: avaliacao, data_inicio: data_inicio, data_final: data_final}
+		h := Historico{cpf_aluno: cpf, id_curso: id_curso, avaliacao: avaliacao, data_inicio: data_inicio, data_final: data_final}
 		id_certificado := alunos_curso[i].id_certificado
 		if id_certificado != "" {
 			historico = append(historico, h)
@@ -372,62 +360,3 @@ func gerarHistorico(cursos []Curso, professor []Professor, alunos_curso []Aluno_
 	return historico
 }
 
-//=====================================Main=====================================
-
-/*
-func main() {
-	//minimo de usuarios é 4 e n sei por que 6 e 7 tbm não vai
-	// dps fazer um randon para gerar o numero de usuarios (8 - 20)
-	usuarios := gerarUsuarios(10)
-	lista := []int{}
-	tam_usuario := len(usuarios)
-	for len(lista) < tam_usuario {
-		num := randInt(0, tam_usuario)
-		if numExiste(num, lista) {
-			continue
-		}
-		lista = append(lista, num)
-	}
-	lista1 := lista[:(len(lista)/2)-1]
-	lista2 := lista[(len(lista1)):]
-	professores := gerarProfessores(usuarios, lista1)
-	alunos := gerarAlunos(usuarios, lista2)
-
-	fmt.Println(professores)
-	fmt.Println(alunos)
-
-	cursos := gerarCursos(professores)
-	fmt.Println(cursos)
-
-	alunos_curso := gerarAlunos_curso(alunos, cursos)
-	certificados := []Certificado{}
-	//for each
-	for _, value := range alunos_curso {
-		if value.id_certificado == "a" {
-			certificado := gerarCertificado()
-			value.id_certificado = certificado.id
-			certificados = append(certificados, certificado)
-		}
-		fmt.Println(value)
-	}
-	cursos_mongo := gerarCurso_Mongo(cursos, professores)
-
-	for _, value := range cursos_mongo {
-		fmt.Println(value)
-	}
-
-	professores_mongodb := gerarProfessores_Mongodb(professores, cursos)
-
-	for _, value := range professores_mongodb {
-		fmt.Println(value)
-	}
-
-	fmt.Println("==================Historico====================")
-
-	historico := gerarHistorico(cursos, professores, alunos_curso)
-
-	for _, value := range historico {
-		fmt.Println(value)
-	}
-}
-*/
