@@ -19,6 +19,24 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type cursoMongoLeitura struct {
+	Nome        string `bson:"nome"`
+	Autor       string `bson:"autor"`
+	Descricao   string `bson:"descricao"`
+	Requisitos  string `bson:"requisitos"`
+	Preco       string `bson:"preco"`
+	Dificuldade string `bson:"dificuldade"`
+	Avaliacao   string `bson:"avaliacao"`
+}
+
+type professorMongoLeitura struct {
+	Nome            string `bson:"nome"`
+	Cpf             string `bson:"cpf"`
+	Formacao        string `bson:"formacao"`
+	TempoPlataforma string `bson:"tempo_plataforma"`
+	QtdeCursos      string `bson:"qtde_cursos"`
+}
+
 func resetarSupabase(conn *pgx.Conn) {
 	query := `
 	DO $$
@@ -401,12 +419,22 @@ func lerCursos_Mongo(ctx context.Context, client *mongo.Client, dbName string) [
 
 	var cursos []Curso_Mongo
 	for cursor.Next(ctx) {
-		var c Curso_Mongo
-		if err := cursor.Decode(&c); err != nil {
+		var tmp cursoMongoLeitura
+		if err := cursor.Decode(&tmp); err != nil {
 			fmt.Println("Erro ao decodificar curso:", err)
 			continue
 		}
-		cursos = append(cursos, c)
+
+		// converte para seu tipo original
+		cursos = append(cursos, Curso_Mongo{
+			nome:        tmp.Nome,
+			autor:       tmp.Autor,
+			descricao:   tmp.Descricao,
+			requisitos:  tmp.Requisitos,
+			preco:       tmp.Preco,
+			dificuldade: tmp.Dificuldade,
+			avaliacao:   tmp.Avaliacao,
+		})
 	}
 
 	if err := cursor.Err(); err != nil {
@@ -415,30 +443,37 @@ func lerCursos_Mongo(ctx context.Context, client *mongo.Client, dbName string) [
 	return cursos
 }
 
-func lerProfessor_Mongo(ctx context.Context, client *mongo.Client, dbName string) []Professor_Mongodb {
+func lerProfessores_MongoDB(ctx context.Context, client *mongo.Client, dbName string) []Professor_Mongodb {
 	coll := client.Database(dbName).Collection("professores")
 
 	cursor, err := coll.Find(ctx, struct{}{})
 	if err != nil {
-		fmt.Println("Erro ao buscar cursos:", err)
+		fmt.Println("Erro ao buscar professores:", err)
 		return nil
 	}
 	defer cursor.Close(ctx)
 
-	var professoresdb []Professor_Mongodb
+	var professores []Professor_Mongodb
 	for cursor.Next(ctx) {
-		var c Professor_Mongodb
-		if err := cursor.Decode(&c); err != nil {
-			fmt.Println("Erro ao decodificar curso:", err)
+		var tmp professorMongoLeitura
+		if err := cursor.Decode(&tmp); err != nil {
+			fmt.Println("Erro ao decodificar professor:", err)
 			continue
 		}
-		professoresdb = append(professoresdb, c)
+
+		professores = append(professores, Professor_Mongodb{
+			nome:             tmp.Nome,
+			cpf:              tmp.Cpf,
+			formacao:         tmp.Formacao,
+			tempo_plataforma: tmp.TempoPlataforma,
+			qtde_cursos:      tmp.QtdeCursos,
+		})
 	}
 
 	if err := cursor.Err(); err != nil {
-		fmt.Println("Erro no professor:", err)
+		fmt.Println("Erro no cursor:", err)
 	}
-	return professoresdb
+	return professores
 }
 
 // Cassandra
@@ -615,7 +650,7 @@ func main() {
 		fmt.Print("\nDados do Cassandra inseridos")
 	}
 
-	usuarios_banco := lerProfessor_Mongo(ctx, client, dbName)
+	usuarios_banco := lerProfessores_MongoDB(ctx, client, dbName)
 	fmt.Println("\n")
 	fmt.Println(usuarios_banco)
 
