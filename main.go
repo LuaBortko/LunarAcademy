@@ -9,8 +9,8 @@ import (
 
 	//"time"
 
-	//gocqlastra "github.com/datastax/gocql-astra"
-	//"github.com/gocql/gocql"
+	gocqlastra "github.com/datastax/gocql-astra"
+	"github.com/gocql/gocql"
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
@@ -215,7 +215,7 @@ func inserirCurso_Mongo(ctx context.Context, client *mongo.Client, dbName string
 	}
 	_, err := coll.InsertMany(ctx, docs)
 	if err != nil {
-		fmt.Println("Erro ao inserir cursos:, err")
+		fmt.Println("Erro ao inserir cursos:", err)
 	} else {
 		fmt.Printf("\n%d cursos inseridos com sucesso\n", len(cursos))
 	}
@@ -237,6 +237,40 @@ func inserirProfessor_MongoDB(ctx context.Context, client *mongo.Client, dbName 
 	_, err := coll.InsertMany(ctx, docs)
 	if err != nil {
 		fmt.Println("\nErro ao inserir professores:", err)
+	}
+}
+
+// Cassandra
+
+func resetarCassandra(session *gocql.Session) {
+	session.Query(`DROP TABLE IF EXISTS historico`).Exec()
+
+	err := session.Query(`
+		CREATE TABLE IF NOT EXISTS historico (
+		id UUID PRIMARY KEY,
+		nome text,
+		autor text,
+		avaliacao text,
+		data_inicio text,
+		data_final text)
+	`).Exec()
+
+	if err != nil {
+		log.Fatalf("Erro ao recriar tabela: %v", err)
+	}
+}
+
+func inserirHistorico_Cassandra(session *gocql.Session, historico []Historico) {
+	for _, h := range historico {
+		id := gocql.TimeUUID()
+		err := session.Query(`
+		INSERT INTO historico (id, nome, autor, avaliacao, data_inicio, data_final)
+		VALUES (?, ?, ? , ?, ?, ?)`,
+			id, h.nome, h.autor, h.avaliacao, h.data_inicio, h.data_final,
+		).Exec()
+		if err != nil {
+			log.Printf("Erro ao inserir historico: %v", err)
+		}
 	}
 }
 
@@ -329,7 +363,37 @@ func main() {
 	professores_mongodb := gerarProfessores_Mongodb(professores, cursos)
 	inserirCurso_Mongo(ctx, client, dbName, cursos_mongo)
 	inserirProfessor_MongoDB(ctx, client, dbName, professores_mongodb)
-	fmt.Print("Dados do MongoDB inseridos")
+	fmt.Print("\nDados do MongoDB inseridos\n")
 
 	defer conn.Close(context.Background())
+
+	// Cassandra
+
+	if os.Getenv("ASTRA_DB_ID") == "" || os.Getenv("APPLICATION_TOKEN") == "" {
+		log.Println("Variáveis de ambiente do Astra DB não configuradas, pulando conexão Cassandra.")
+		return
+	}
+
+	cluster, err := gocqlastra.NewClusterFromURL(
+		"https://api.astra.datastax.com",
+		os.Getenv("ASTRA_DB_ID"),
+		os.Getenv("APPLICATION_TOKEN"),
+		10*time.Second,
+	)
+	if err != nil {
+		log.Fatalf("Erro ao carregar cluster Astra: %v", err)
+	}
+
+	cluster.Timeout = 30 * time.Second
+	cluster.Keyspace = "default_keyspace"
+	session, err := gocql.NewSession(*cluster)
+	if err != nil {
+		log.Fatalf("Erro ao conectar ao Cassandra: %v", err)
+	}
+	defer session.Close()
+
+	resetarCassandra(session)
+	historico := gerarHistorico(cursos, professores, alunos_curso)
+	inserirHistorico_Cassandra(session, historico)
+	fmt.Print("\nDados do Cassandra inseridos")
 }

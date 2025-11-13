@@ -101,17 +101,16 @@ func testCassandra() {
 	// 	log.Printf("Erro ao rodar query Cassandra: %v", err)
 	// }
 }
-/*
-func main() {
-	// Carrega as variáveis do .env
-	godotenv.Load()
 
-	fmt.Println("Iniciando conexões com os bancos...")
+// func main() {
+// 	// Carrega as variáveis do .env
+// 	godotenv.Load()
 
-	testSupabase()
-	testMongo()
-	testCassandra()
+// 	fmt.Println("Iniciando conexões com os bancos...")
 
-	fmt.Println("Conexões encerradas")
-}
-*/
+// 	testSupabase()
+// 	testMongo()
+// 	testCassandra()
+
+// 	fmt.Println("Conexões encerradas")
+// }
