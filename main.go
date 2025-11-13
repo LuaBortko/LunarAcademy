@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -232,6 +233,103 @@ func lerProfessores(conn *pgx.Conn) []Professor {
 	return professores
 }
 
+func lerAlunos(conn *pgx.Conn) []Aluno {
+	rows, err := conn.Query(context.Background(), "SELECT nome, cpf FROM aluno")
+	if err != nil {
+		fmt.Errorf("erro ao executar SELECT: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var alunos []Aluno
+
+	for rows.Next() {
+		var u Aluno
+		err := rows.Scan(&u.nome, &u.cpf)
+		if err != nil {
+			fmt.Errorf("erro ao ler linha: %v", err)
+			return nil
+		}
+		alunos = append(alunos, u)
+	}
+	return alunos
+}
+
+func lerCursos(conn *pgx.Conn) []Curso {
+	rows, err := conn.Query(context.Background(), "SELECT nome, cpf_autor, id FROM curso")
+	if err != nil {
+		fmt.Errorf("erro ao executar SELECT: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var cursos []Curso
+
+	for rows.Next() {
+		var u Curso
+		err := rows.Scan(&u.nome, &u.cpf_autor, &u.id)
+		if err != nil {
+			fmt.Errorf("erro ao ler linha: %v", err)
+			return nil
+		}
+		cursos = append(cursos, u)
+	}
+	return cursos
+}
+
+func lerCertificados(conn *pgx.Conn) []Certificado {
+	rows, err := conn.Query(context.Background(), "SELECT id, horas FROM certificado")
+	if err != nil {
+		fmt.Errorf("erro ao executar SELECT: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var certificados []Certificado
+
+	for rows.Next() {
+		var u Certificado
+		err := rows.Scan(&u.id, &u.horas)
+		if err != nil {
+			fmt.Errorf("erro ao ler linha: %v", err)
+			return nil
+		}
+		certificados = append(certificados, u)
+	}
+	return certificados
+}
+
+func lerAlunos_Curso(conn *pgx.Conn) []Aluno_curso {
+	rows, err := conn.Query(context.Background(),
+		"SELECT id_curso, cpf_aluno, data_in, data_fim, id_certificado FROM aluno_curso")
+	if err != nil {
+		log.Printf("Erro ao executar SELECT: %v", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var alunos_curso []Aluno_curso
+
+	for rows.Next() {
+		var u Aluno_curso
+		var idCertificado sql.NullString // 👈 suporta valores NULL
+
+		err := rows.Scan(&u.id_curso, &u.cpf_aluno, &u.data_in, &u.data_fim, &idCertificado)
+		if err != nil {
+			log.Printf("Erro ao ler linha: %v", err)
+			continue
+		}
+		if idCertificado.Valid {
+			u.id_certificado = idCertificado.String
+		} else {
+			u.id_certificado = ""
+		}
+
+		alunos_curso = append(alunos_curso, u)
+	}
+	return alunos_curso
+}
+
 func resetarBancos(conn *pgx.Conn, session *gocql.Session, ctx context.Context, client *mongo.Client, dbName string) {
 	resetarSupabase(conn)
 	criarSupabase(conn)
@@ -291,6 +389,58 @@ func inserirProfessor_MongoDB(ctx context.Context, client *mongo.Client, dbName 
 	}
 }
 
+func lerCursos_Mongo(ctx context.Context, client *mongo.Client, dbName string) []Curso_Mongo {
+	coll := client.Database(dbName).Collection("cursos")
+
+	cursor, err := coll.Find(ctx, struct{}{})
+	if err != nil {
+		fmt.Println("Erro ao buscar cursos:", err)
+		return nil
+	}
+	defer cursor.Close(ctx)
+
+	var cursos []Curso_Mongo
+	for cursor.Next(ctx) {
+		var c Curso_Mongo
+		if err := cursor.Decode(&c); err != nil {
+			fmt.Println("Erro ao decodificar curso:", err)
+			continue
+		}
+		cursos = append(cursos, c)
+	}
+
+	if err := cursor.Err(); err != nil {
+		fmt.Println("Erro no cursor:", err)
+	}
+	return cursos
+}
+
+func lerProfessor_Mongo(ctx context.Context, client *mongo.Client, dbName string) []Professor_Mongodb {
+	coll := client.Database(dbName).Collection("professores")
+
+	cursor, err := coll.Find(ctx, struct{}{})
+	if err != nil {
+		fmt.Println("Erro ao buscar cursos:", err)
+		return nil
+	}
+	defer cursor.Close(ctx)
+
+	var professoresdb []Professor_Mongodb
+	for cursor.Next(ctx) {
+		var c Professor_Mongodb
+		if err := cursor.Decode(&c); err != nil {
+			fmt.Println("Erro ao decodificar curso:", err)
+			continue
+		}
+		professoresdb = append(professoresdb, c)
+	}
+
+	if err := cursor.Err(); err != nil {
+		fmt.Println("Erro no professor:", err)
+	}
+	return professoresdb
+}
+
 // Cassandra
 
 func resetarCassandra(session *gocql.Session) {
@@ -323,6 +473,22 @@ func inserirHistorico_Cassandra(session *gocql.Session, historico []Historico) {
 			log.Printf("Erro ao inserir historico: %v", err)
 		}
 	}
+}
+
+func lerHistorico_Cassandra(session *gocql.Session) []Historico {
+	iter := session.Query(`SELECT nome, autor, avaliacao, data_inicio, data_final FROM historico`).Iter()
+
+	var historicos []Historico
+	var h Historico
+
+	for iter.Scan(&h.nome, &h.autor, &h.avaliacao, &h.data_inicio, &h.data_final) {
+		historicos = append(historicos, h)
+	}
+
+	if err := iter.Close(); err != nil {
+		log.Printf("Erro ao ler historico: %v", err)
+	}
+	return historicos
 }
 
 func main() {
@@ -449,7 +615,7 @@ func main() {
 		fmt.Print("\nDados do Cassandra inseridos")
 	}
 
-	usuarios_banco := lerUsuarios(conn)
+	usuarios_banco := lerProfessor_Mongo(ctx, client, dbName)
 	fmt.Println("\n")
 	fmt.Println(usuarios_banco)
 
