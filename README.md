@@ -27,6 +27,7 @@ Onde são guardadas as informações sobre o aluno de um certo curso. Contém o 
 #### cursos
 
 ![Curso MongoDB](imagens/ExemploCursoMongo.png)
+
 Dentro desta tabela são guardadas mais informações sobre o curso, então além do nome, autor como no Supabase, aqui se encontram dados que possam ter alguma variância em suas entradas, como pré-requisitos, preço do curso, descrição e avaliação pelos usuários.
 #### professores
 ![Supabase](imagens/ExemploProfessorMongo.png)
