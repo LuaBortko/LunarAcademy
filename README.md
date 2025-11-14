@@ -7,7 +7,8 @@ Neste projeto, utilizamos três bancos de dados diferentes: Supabase, MongoDB e 
 Cada banco tem certas tabelas dentro dele:
 ### Supabase
 O banco do Supabase guarda as seguintes tabelas: 
-<img width="978" height="359" alt="TabelaSupaBase" src="https://github.com/user-attachments/assets/2825aae7-610d-4876-bdc9-2abdfd1435cc" />
+![Supabase](imagens/TabelaSupaBase.png)
+
 
 #### curso
 Onde são guardados todos os cursos cadastrados na plataforma. Nesta tabela, é guardado o nome do cursos, o autor e um ID para identificação.
@@ -24,13 +25,14 @@ Onde são guardadas as informações sobre o aluno de um certo curso. Contém o 
 
 ### MongoDB
 #### cursos
-<img width="568" height="131" alt="ExemploCursoMongo" src="https://github.com/user-attachments/assets/a0ce033b-fd30-4cca-87a7-b89364388de8" />
+![Curso MongoDB](imagens/ExemploCursoMongo.png)
 Dentro desta tabela são guardadas mais informações sobre o curso, então além do nome, autor como no Supabase, aqui se encontram dados que possam ter alguma variância em suas entradas, como pré-requisitos, preço do curso, descrição e avaliação pelos usuários.
 #### professores
-<img width="673" height="103" alt="ExemploProfessorMongo" src="https://github.com/user-attachments/assets/17d619c2-3764-4f29-b421-4a4d2ce51553" />
+![Supabase](imagens/ExemploProfessorMongo.png)
 Nesta tabela são guardadas mais informações sobre os professores dos cursos, então se tem o nome e CPF como no Supabase, porém também são inseridos dados sobre a formação do professor, a idade da sua conta na plataforma e a quantidade de cursos que ele publicou.
 
 ### Cassandra
+![Supabase](imagens/ExemploCassandra.png)
 #### historico
 Dentro desta tabela contém todas as informações para formular um histórico para os alunos da plataforma. Ela contém o nome do aluno, o curso que foi concluido, as datas de início e fim do curso, além da avaliação dada pelo aluno.
 
