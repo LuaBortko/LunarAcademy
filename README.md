@@ -15,7 +15,33 @@ Onde são guardados todos os cursos cadastrados na plataforma. Nesta tabela, é 
 Onde são guardados todos os usuários cadastrados na plataforma. Nesta tabela, são guardados o email,o CPF e a senha dos usuários. 
 #### professor
 Onde são guardadas todas as informações de todos os professores cadastrados na plataforma. É guardado apenas o nome e o CPF do professor.
+#### aluno
+Onde são guardadas todas as informações de todos os alunos cadastrados na plataforma. É guardado apenas o nome e o CPF do aluno.
 #### certificado
 Onde são guardadas as informações do certificado do aluno após o término do curso. Nela é guardado o id do certificado e o número de horas gastos no curso.
+#### aluno_curso
+Onde são guardadas as informações sobre o aluno de um certo curso. Contém o id do cursos, o cpf do aluno, as datas que o aluno começou e terminou o curso(data de término em branco se não tiver terminado) e o id do certificado de conclusão(se tiver um).
 
+### MongoDB
+#### cursos
+<img width="568" height="131" alt="ExemploCursoMongo" src="https://github.com/user-attachments/assets/a0ce033b-fd30-4cca-87a7-b89364388de8" />
+Dentro desta tabela são guardadas mais informações sobre o curso, então além do nome, autor como no Supabase, aqui se encontram dados que possam ter alguma variância em suas entradas, como pré-requisitos, preço do curso, descrição e avaliação pelos usuários.
+#### professores
+<img width="673" height="103" alt="ExemploProfessorMongo" src="https://github.com/user-attachments/assets/17d619c2-3764-4f29-b421-4a4d2ce51553" />
+Nesta tabela são guardadas mais informações sobre os professores dos cursos, então se tem o nome e CPF como no Supabase, porém também são inseridos dados sobre a formação do professor, a idade da sua conta na plataforma e a quantidade de cursos que ele publicou.
+
+### Cassandra
+#### historico
+Dentro desta tabela contém todas as informações para formular um histórico para os alunos da plataforma. Ela contém o nome do aluno, o curso que foi concluido, as datas de início e fim do curso, além da avaliação dada pelo aluno.
+
+## Como executar o projeto
+### Pré-requisitos
+Para executar o projeto, é necessário ter a linguagem Golang instalada na máquina, já que os códigos de geração e inserção de dados foram feitos completamente em Go.
+
+### Compilação e execução do programa
+Para o projeto ser executado, será necessário compilar o arquivo main.go com o seguinte comando:
+```bash
+go run main.go
+```
+O código será compilado e executado automaticamente após a compilação.
 
